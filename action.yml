@@ -1,23 +1,27 @@
 name: 'Hello World'
 description: 'Greet someone'
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  token:  # token for yc auth https://cloud.yandex.com/en/docs/cli/quickstart
+    description: 'token for auth in Yandex cloud'
     required: true
-    default: 'World'
-outputs:
-  random-number:
-    description: "Random number"
-    value: ${{ steps.random-number-generator.outputs.random-number }}
+    default: ''
+  folder-id: # default yc folder-id
+    description: 'default folder id for yc cli'
+    required: false
+  cloud-id: # default yc cloud-id
+    description: 'default cloud id for yc cli'
+    required: false
 runs:
   using: "composite"
   steps:
-    - run: echo Hello ${{ inputs.who-to-greet }}.
+    - id: install-yc
+      run: |
+        curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+        export PATH=$PATH:${HOME}/yandex-cloud/bin
       shell: bash
-    - id: random-number-generator
-      run: echo "random-number=$(echo $RANDOM)" >> $GITHUB_OUTPUT
-      shell: bash
-    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
-      shell: bash
-    - run: goodbye.sh
+    - id: configure yc
+      run: |
+        yc config set token ${{ inputs.token }}
+        yc config set folder-id ${{ inputs.folder-id }}
+        yc config set cloud-id ${{ inputs.cloud-id }}
       shell: bash
